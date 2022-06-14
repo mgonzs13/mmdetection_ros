@@ -18,6 +18,14 @@ class VisualizationNode(Node):
     def __init__(self) -> None:
         super().__init__("visualization_node")
 
+        # params
+        self.declare_parameter("alpha", 0.4)
+        self.declare_parameter("thickness", 2)
+        self.alpha = self.get_parameter(
+            "alpha").get_parameter_value().double_value
+        self.thickness = self.get_parameter(
+            "thickness").get_parameter_value().integer_value
+
         self._class_to_color = {}
         self.cv_bridge = CvBridge()
 
@@ -52,27 +60,25 @@ class VisualizationNode(Node):
 
             min_pt = (round(cx - sx / 2.0), round(cy - sy / 2.0))
             max_pt = (round(cx + sx / 2.0), round(cy + sy / 2.0))
-            thickness = 2
-            cv2.rectangle(cv_image, min_pt, max_pt, color, thickness)
+            cv2.rectangle(cv_image, min_pt, max_pt, color, self.thickness)
 
             # mask
-            alpha = 0.5
+            if detection.mask.height > 0 and detection.mask.width > 0:
+                mask = []
+                for i in range(0, detection.mask.height * detection.mask.width, detection.mask.width):
+                    aux = np.array(
+                        detection.mask.mask.data[i:i + detection.mask.width])
+                    mask.append(aux)
 
-            mask = []
-            for i in range(0, detection.mask.height * detection.mask.width, detection.mask.width):
-                aux = np.array(
-                    detection.mask.mask.data[i:i + detection.mask.width])
-                mask.append(aux)
+                mask = np.array(mask)
+                mask = mask.astype(bool)
 
-            mask = np.array(mask)
-            mask = mask.astype(bool)
-
-            cv_image[mask] = cv_image[mask] * \
-                (1 - alpha) + np.array(color, dtype=np.uint8) * alpha
+                cv_image[mask] = cv_image[mask] * \
+                    (1 - self.alpha) + np.array(color, dtype=np.uint8) * self.alpha
 
             # label
             label = '{} {:.3f}'.format(detection.label, detection.score)
-            pos = (min_pt[0], max_pt[1])
+            pos = (min_pt[0] + 5, min_pt[1] + 20)
             font = cv2.FONT_HERSHEY_SIMPLEX
             cv2.putText(cv_image, label, pos, font,
                         0.75, color, 1, cv2.LINE_AA)
