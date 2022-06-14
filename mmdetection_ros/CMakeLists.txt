@@ -22,6 +22,12 @@ install(PROGRAMS
   RENAME mmdetection_node
 )
 
+install(PROGRAMS
+  mmdetection_ros/visualization_node.py
+  DESTINATION lib/${PROJECT_NAME}
+  RENAME visualization_node
+)
+
 install(DIRECTORY
   config
   DESTINATION share/${PROJECT_NAME}/

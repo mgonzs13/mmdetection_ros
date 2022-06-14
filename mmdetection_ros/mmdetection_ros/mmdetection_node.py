@@ -55,13 +55,17 @@ class MmDetectionNode(Node):
 
         # topcis
         self._pub = self.create_publisher(
-            Detections, "detections", qos_profile=10)
+            Detections, "detections", 10)
         self._sub = self.create_subscription(
-            Image, "image_raw", self.image_cb, 100)
+            Image, "image_raw", self.image_cb, 10)
 
     def image_cb(self, msg: Image) -> None:
 
         if self.enable:
+
+            detections_msg = Detections()
+            detections_msg.header.frame_id = msg.header.frame_id
+            detections_msg.header.stamp = msg.header.stamp  # self.get_clock().now().to_msg()
 
             cv_image = self.cv_bridge.imgmsg_to_cv2(msg)
             result = inference_detector(self.model, cv_image)
@@ -89,8 +93,6 @@ class MmDetectionNode(Node):
                     masks = np.stack(masks, axis=0)
 
             if not labels is None:
-
-                detections_msg = Detections()
 
                 detections = [labels]
 
@@ -127,7 +129,7 @@ class MmDetectionNode(Node):
 
                         detections_msg.detections.append(d_msg)
 
-                self._pub.publish(detections_msg)
+            self._pub.publish(detections_msg)
 
 
 def main():
