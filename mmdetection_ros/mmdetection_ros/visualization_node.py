@@ -2,12 +2,12 @@
 
 import cv2
 import random
+import numpy as np
+
 import rclpy
 from rclpy.node import Node
 import message_filters
 from cv_bridge import CvBridge
-
-from mmdet.apis import show_result_pyplot
 
 from sensor_msgs.msg import Image
 from mmdetection_msgs.msg import Detections
@@ -55,6 +55,22 @@ class VisualizationNode(Node):
             thickness = 2
             cv2.rectangle(cv_image, min_pt, max_pt, color, thickness)
 
+            # mask
+            alpha = 0.5
+
+            mask = []
+            for i in range(0, detection.mask.height * detection.mask.width, detection.mask.width):
+                aux = np.array(
+                    detection.mask.mask.data[i:i + detection.mask.width])
+                mask.append(aux)
+
+            mask = np.array(mask)
+            mask = mask.astype(bool)
+
+            cv_image[mask] = cv_image[mask] * \
+                (1 - alpha) + np.array(color, dtype=np.uint8) * alpha
+
+            # label
             label = '{} {:.3f}'.format(detection.label, detection.score)
             pos = (min_pt[0], max_pt[1])
             font = cv2.FONT_HERSHEY_SIMPLEX
