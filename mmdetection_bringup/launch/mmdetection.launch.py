@@ -23,7 +23,7 @@ def generate_launch_description():
             mmdetection_bringup_path,
             "config", "yolact",
             "yolact_r101_1x8_coco.py"),
-        description="Network configuration file (.cfg)")
+        description="Network configuration file (.py)")
 
     weights = LaunchConfiguration("weights")
     weights_cmd = DeclareLaunchArgument(
@@ -32,7 +32,7 @@ def generate_launch_description():
             mmdetection_bringup_path,
             "config", "yolact",
             "yolact_r101_1x8_coco_20200908-4cbe9101.pth"),
-        description="Weights file (.weights)")
+        description="Weights file (.pth)")
 
     device = LaunchConfiguration("device")
     device_cmd = DeclareLaunchArgument(
@@ -62,7 +62,7 @@ def generate_launch_description():
     show_debug_image_cmd = DeclareLaunchArgument(
         "show_debug_image",
         default_value="True",
-        description="Whether show image with bounding boxes")
+        description="Whether show image with the detections")
 
     input_image_topic = LaunchConfiguration("input_image_topic")
     input_image_topic_cmd = DeclareLaunchArgument(
@@ -74,7 +74,7 @@ def generate_launch_description():
     namespace_cmd = DeclareLaunchArgument(
         "namespace",
         default_value="mmdetection",
-        description="Namespace")
+        description="Namespace for the nodes")
 
     #
     # NODES
