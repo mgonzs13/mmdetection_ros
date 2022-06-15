@@ -10,5 +10,17 @@ $ pip3 install mmcv mmdet
 $ cd ~/ros2_ws/src
 $ git clone https://github.com/mgonzs13/mmdetection_ros.git
 $ cd ~/ros2_ws
+$ rosdep install --from-paths src -r -y --ignore-src
 $ colcon build
+```
+
+## Demo
+
+```shell
+$ ros2 launch mmdetection_bringup mmdetection.launch.py
+```
+
+```shell
+$ wget https://download.openmmlab.com/mmdetection/v2.0/yolact/yolact_r101_1x8_coco/yolact_r101_1x8_coco_20200908-4cbe9101.pth
+$ ros2 launch mmdetection_bringup mmdetection.launch.py network_config:=yolact_r101_1x8_coco_20200908-4cbe9101.pth
 ```

@@ -27,12 +27,12 @@ class MmDetectionNode(Node):
         # params
         self.declare_parameter(
             "config", os.path.join
-            (get_package_share_directory("mmdetection_ros"),
+            (get_package_share_directory("mmdetection_bringup"),
              "config",
              "yolact/yolact_r101_1x8_coco.py"))
         self.declare_parameter(
             "weights", os.path.join
-            (get_package_share_directory("mmdetection_ros"),
+            (get_package_share_directory("mmdetection_bringup"),
              "config",
              "yolact/yolact_r101_1x8_coco_20200908-4cbe9101.pth"))
         self.declare_parameter("device", "cuda:0")
