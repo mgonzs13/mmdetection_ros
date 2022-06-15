@@ -22,5 +22,5 @@ $ ros2 launch mmdetection_bringup mmdetection.launch.py
 
 ```shell
 $ wget https://download.openmmlab.com/mmdetection/v2.0/yolact/yolact_r101_1x8_coco/yolact_r101_1x8_coco_20200908-4cbe9101.pth
-$ ros2 launch mmdetection_bringup mmdetection.launch.py network_config:=yolact_r101_1x8_coco_20200908-4cbe9101.pth
+$ ros2 launch mmdetection_bringup mmdetection.launch.py input_image_topic:=/camera/rgb/image_raw network_config:=~/ros2_ws/src/mmdetection_ros/mmdetection_bringup/config/yolox/yolox_tiny_8x8_300e_coco.py weights:=yolox_tiny_8x8_300e_coco_20211124_171234-b4047906.pth
 ```
