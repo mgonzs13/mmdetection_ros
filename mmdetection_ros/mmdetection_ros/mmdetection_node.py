@@ -117,7 +117,7 @@ class MmDetectionNode(Node):
                             d_msg.box.size_x = float(
                                 detection[1][2] - detection[1][0])
                             d_msg.box.size_y = float(
-                                detection[1][3] + detection[1][1])
+                                detection[1][3] - detection[1][1])
 
                         if not masks is None:
                             d_msg.mask.height = len(detection[2])
