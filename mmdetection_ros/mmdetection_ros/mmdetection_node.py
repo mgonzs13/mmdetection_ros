@@ -1,6 +1,9 @@
 
+from cProfile import label
 import os
 import rclpy
+from typing import List, Union
+
 from rclpy.node import Node
 from ament_index_python import get_package_share_directory
 from cv_bridge import CvBridge
@@ -8,7 +11,9 @@ from cv_bridge import CvBridge
 import torch
 import mmcv
 import numpy as np
+
 from mmdet.apis import inference_detector, init_detector
+from mmdet.core import INSTANCE_OFFSET
 
 from sensor_msgs.msg import Image
 from std_srvs.srv import SetBool
@@ -70,6 +75,45 @@ class MmDetectionNode(Node):
         res.success = True
         return res
 
+    def parse_results(self, result: Union[list, dict, tuple]) -> List[np.ndarray]:
+
+        # panoptic
+        if "pan_results" in result:
+            pan_results = result["pan_results"]
+            ids = np.unique(pan_results)[::-1]
+            legal_indices = ids != self.model.num_classes
+            ids = ids[legal_indices]
+            labels = np.array(
+                [id % INSTANCE_OFFSET for id in ids], dtype=np.int64)
+            masks = (pan_results[None] == ids[:, None, None])
+            return [labels, None, masks]
+
+        # object detection
+        if isinstance(result, tuple):
+            bbox_result, mask_result = result
+            if isinstance(mask_result, tuple):
+                mask_result = mask_result[0]  # ms rcnn
+        else:
+            bbox_result, mask_result = result, None
+        bboxes = np.vstack(bbox_result)
+
+        labels = [
+            np.full(bbox.shape[0], i, dtype=np.int32)
+            for i, bbox in enumerate(bbox_result)
+        ]
+        labels = np.concatenate(labels)
+
+        # instance segmentation
+        masks = None
+        if mask_result is not None and len(labels) > 0:  # non empty
+            masks = mmcv.concat_list(mask_result)
+            if isinstance(masks[0], torch.Tensor):
+                masks = torch.stack(masks, dim=0).detach().cpu().numpy()
+            else:
+                masks = np.stack(masks, axis=0)
+
+        return [labels, bboxes, masks]
+
     def image_cb(self, msg: Image) -> None:
 
         if self.enable:
@@ -81,60 +125,47 @@ class MmDetectionNode(Node):
             cv_image = self.cv_bridge.imgmsg_to_cv2(msg)
             result = inference_detector(self.model, cv_image)
 
-            if isinstance(result, tuple):
-                bbox_result, mask_result = result
-                if isinstance(mask_result, tuple):
-                    mask_result = mask_result[0]  # ms rcnn
-            else:
-                bbox_result, mask_result = result, None
-            bboxes = np.vstack(bbox_result)
-
-            labels = [
-                np.full(bbox.shape[0], i, dtype=np.int32)
-                for i, bbox in enumerate(bbox_result)
-            ]
-            labels = np.concatenate(labels)
-
-            masks = None
-            if mask_result is not None and len(labels) > 0:  # non empty
-                masks = mmcv.concat_list(mask_result)
-                if isinstance(masks[0], torch.Tensor):
-                    masks = torch.stack(masks, dim=0).detach().cpu().numpy()
-                else:
-                    masks = np.stack(masks, axis=0)
+            labels, bboxes, masks = self.parse_results(result)
 
             if not labels is None:
 
                 detections = [labels]
+                bboxes_idx = 1
+                masks_idx = 2
 
                 if not bboxes is None:
                     detections.append(bboxes)
+                else:
+                    masks_idx = 1
+
                 if not masks is None:
                     detections.append(masks)
 
                 for detection in zip(*detections):
 
-                    if detection[1][4] > self.threshold:
+                    if bboxes is None or detection[bboxes_idx][4] > self.threshold:
                         d_msg = Detection()
                         d_msg.label_id = int(detection[0])
                         d_msg.label = self.model.CLASSES[detection[0]]
-                        d_msg.score = float(detection[1][4])
+
+                        if not bboxes is None:
+                            d_msg.score = float(detection[bboxes_idx][4])
 
                         if not bboxes is None:
                             d_msg.box.center_x = float((
-                                detection[1][0] + detection[1][2]) / 2)
+                                detection[bboxes_idx][0] + detection[bboxes_idx][2]) / 2)
                             d_msg.box.center_y = float((
-                                detection[1][1] + detection[1][3]) / 2)
+                                detection[bboxes_idx][1] + detection[bboxes_idx][3]) / 2)
                             d_msg.box.size_x = float(
-                                detection[1][2] - detection[1][0])
+                                detection[bboxes_idx][2] - detection[bboxes_idx][0])
                             d_msg.box.size_y = float(
-                                detection[1][3] - detection[1][1])
+                                detection[bboxes_idx][3] - detection[bboxes_idx][1])
 
                         if not masks is None:
-                            d_msg.mask.height = len(detection[2])
-                            d_msg.mask.width = len(detection[2][0])
+                            d_msg.mask.height = len(detection[masks_idx])
+                            d_msg.mask.width = len(detection[masks_idx][0])
 
-                            for row in detection[2]:
+                            for row in detection[masks_idx]:
                                 for ele in row:
                                     d_msg.mask.data.append(ele)
 

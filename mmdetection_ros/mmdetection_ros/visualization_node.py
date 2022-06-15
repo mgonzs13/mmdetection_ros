@@ -35,7 +35,7 @@ class VisualizationNode(Node):
             self, Detections, "detections")
 
         self._synchronizer = message_filters.ApproximateTimeSynchronizer(
-            (self._image_sub, self._detections_sub), 10, 0.5)
+            (self._image_sub, self._detections_sub), 100, 0.5)
         self._synchronizer.registerCallback(self.on_detections)
 
     def on_detections(self, image_msg: Image, detections_msg: Detections) -> None:
@@ -62,6 +62,7 @@ class VisualizationNode(Node):
             cv2.rectangle(cv_image, min_pt, max_pt, color, self.thickness)
 
             # mask
+            mask = None
             if detection.mask.height > 0 and detection.mask.width > 0:
                 mask = []
                 for i in range(0, detection.mask.height * detection.mask.width, detection.mask.width):
@@ -75,9 +76,26 @@ class VisualizationNode(Node):
                 cv_image[mask] = cv_image[mask] * \
                     (1 - self.alpha) + np.array(color, dtype=np.uint8) * self.alpha
 
+                contours, _ = cv2.findContours(
+                    mask.astype(np.uint8), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+                cv2.drawContours(cv_image, contours, -1,
+                                 (color[0]/2, color[1]/2, color[2]/2),
+                                 thickness=self.thickness,
+                                 lineType=cv2.LINE_AA)
+
             # label
             label = '{} {:.3f}'.format(detection.label, detection.score)
             pos = (min_pt[0] + 5, min_pt[1] + 20)
+
+            if detection.score == 0 and not mask is None:  # panoptic
+                label = '{}'.format(detection.label)
+                print(mask.astype(np.uint8))
+                _, _, stats, centroids = cv2.connectedComponentsWithStats(
+                    mask.astype(np.uint8), connectivity=8)
+                largest_id = np.argmax(stats[1:, -1]) + 1
+                pos = (round(centroids[largest_id][0]),
+                       round(centroids[largest_id][1]))
+
             font = cv2.FONT_HERSHEY_SIMPLEX
             cv2.putText(cv_image, label, pos, font,
                         0.75, color, 1, cv2.LINE_AA)
