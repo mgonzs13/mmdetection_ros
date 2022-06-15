@@ -12,6 +12,7 @@ import numpy as np
 from mmdet.apis import inference_detector, init_detector
 
 from sensor_msgs.msg import Image
+from std_srvs.srv import SetBool
 from mmdetection_msgs.msg import (
     Detection,
     Detections
@@ -58,6 +59,17 @@ class MmDetectionNode(Node):
             Detections, "detections", 10)
         self._sub = self.create_subscription(
             Image, "image_raw", self.image_cb, 10)
+
+        # services
+        self._srv = self.create_service(SetBool, "enable", self.enable_cb)
+
+    def enable_cb(self,
+                  req: SetBool.Request,
+                  res: SetBool.Response
+                  ) -> SetBool.Response:
+        self.enable = req.data
+        res.success = True
+        return res
 
     def image_cb(self, msg: Image) -> None:
 
