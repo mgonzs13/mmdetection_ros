@@ -125,7 +125,7 @@ class MmDetectionNode(Node):
 
                             for row in detection[2]:
                                 for ele in row:
-                                    d_msg.mask.mask.data.append(ele)
+                                    d_msg.mask.data.append(ele)
 
                         detections_msg.detections.append(d_msg)
 

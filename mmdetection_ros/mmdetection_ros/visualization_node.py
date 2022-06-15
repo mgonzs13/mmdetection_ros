@@ -67,7 +67,7 @@ class VisualizationNode(Node):
                 mask = []
                 for i in range(0, detection.mask.height * detection.mask.width, detection.mask.width):
                     aux = np.array(
-                        detection.mask.mask.data[i:i + detection.mask.width])
+                        detection.mask.data[i:i + detection.mask.width])
                     mask.append(aux)
 
                 mask = np.array(mask)
