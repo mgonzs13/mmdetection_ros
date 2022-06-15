@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 
 import cv2
 import random
@@ -95,7 +94,3 @@ def main():
     node = VisualizationNode()
     rclpy.spin(node)
     rclpy.shutdown()
-
-
-if __name__ == "__main__":
-    main()

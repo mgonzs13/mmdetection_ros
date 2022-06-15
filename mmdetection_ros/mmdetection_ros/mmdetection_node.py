@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 
 import os
 import rclpy
@@ -149,7 +148,3 @@ def main():
     node = MmDetectionNode()
     rclpy.spin(node)
     rclpy.shutdown()
-
-
-if __name__ == "__main__":
-    main()
