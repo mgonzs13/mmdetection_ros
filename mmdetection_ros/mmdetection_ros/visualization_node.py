@@ -30,12 +30,12 @@ class VisualizationNode(Node):
 
         self._pub = self.create_publisher(Image, "result_image", 10)
 
-        self._image_sub = message_filters.Subscriber(self, Image, "image_raw")
-        self._detections_sub = message_filters.Subscriber(
-            self, Detections, "detections")
+        image_sub = message_filters.Subscriber(self, Image, "image_raw")
+        detections_sub = message_filters.Subscriber(
+            self, Detections, "detections", )
 
         self._synchronizer = message_filters.ApproximateTimeSynchronizer(
-            (self._image_sub, self._detections_sub), 100, 0.5)
+            (image_sub, detections_sub), 10, 0.5)
         self._synchronizer.registerCallback(self.on_detections)
 
     def on_detections(self, image_msg: Image, detections_msg: Detections) -> None:

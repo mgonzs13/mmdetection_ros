@@ -1,9 +1,8 @@
 
-from cProfile import label
 import os
-import rclpy
 from typing import List, Union
 
+import rclpy
 from rclpy.node import Node
 from ament_index_python import get_package_share_directory
 from cv_bridge import CvBridge
