@@ -1,5 +1,6 @@
 
 import os
+import itertools
 from typing import List, Union
 
 import rclpy
@@ -163,10 +164,8 @@ class MmDetectionNode(Node):
                         if not masks is None:
                             d_msg.mask.height = len(detection[masks_idx])
                             d_msg.mask.width = len(detection[masks_idx][0])
-
-                            for row in detection[masks_idx]:
-                                for ele in row:
-                                    d_msg.mask.data.append(ele)
+                            d_msg.mask.data = list(itertools.chain.from_iterable(
+                                detection[masks_idx].tolist()))
 
                         detections_msg.detections.append(d_msg)
 
