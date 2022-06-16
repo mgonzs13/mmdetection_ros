@@ -1,9 +1,9 @@
 
 import os
-import itertools
 from typing import List, Union
 
 import rclpy
+import rclpy.qos as qos
 from rclpy.node import Node
 from ament_index_python import get_package_share_directory
 from cv_bridge import CvBridge
@@ -62,7 +62,12 @@ class MmDetectionNode(Node):
         self._pub = self.create_publisher(
             Detections, "detections", 10)
         self._sub = self.create_subscription(
-            Image, "image_raw", self.image_cb, 10)
+            Image, "image_raw", self.image_cb,
+            qos.QoSProfile(
+                depth=1,
+                reliability=qos.QoSReliabilityPolicy.BEST_EFFORT
+            )
+        )
 
         # services
         self._srv = self.create_service(SetBool, "enable", self.enable_cb)
@@ -164,8 +169,8 @@ class MmDetectionNode(Node):
                         if not masks is None:
                             d_msg.mask.height = len(detection[masks_idx])
                             d_msg.mask.width = len(detection[masks_idx][0])
-                            d_msg.mask.data = list(itertools.chain.from_iterable(
-                                detection[masks_idx].tolist()))
+                            d_msg.mask.data = np.concatenate(
+                                detection[masks_idx]).tolist()
 
                         detections_msg.detections.append(d_msg)
 

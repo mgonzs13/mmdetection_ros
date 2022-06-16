@@ -35,7 +35,7 @@ class VisualizationNode(Node):
             self, Detections, "detections", )
 
         self._synchronizer = message_filters.ApproximateTimeSynchronizer(
-            (image_sub, detections_sub), 10, 0.5)
+            (image_sub, detections_sub), 60, 0.5)
         self._synchronizer.registerCallback(self.on_detections)
 
     def on_detections(self, image_msg: Image, detections_msg: Detections) -> None:
@@ -64,13 +64,10 @@ class VisualizationNode(Node):
             # mask
             mask = None
             if detection.mask.height > 0 and detection.mask.width > 0:
-                mask = []
-                for i in range(0, detection.mask.height * detection.mask.width, detection.mask.width):
-                    aux = np.array(
-                        detection.mask.data[i:i + detection.mask.width])
-                    mask.append(aux)
 
-                mask = np.array(mask)
+                mask = np.array(detection.mask.data)
+                mask = mask.reshape(detection.mask.height,
+                                    detection.mask.width)
                 mask = mask.astype(bool)
 
                 cv_image[mask] = cv_image[mask] * \
