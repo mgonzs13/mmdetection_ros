@@ -2,6 +2,8 @@
 import os
 from typing import List, Union
 
+from attr import s
+
 import rclpy
 import rclpy.qos as qos
 from rclpy.node import Node
@@ -151,7 +153,9 @@ class MmDetectionNode(Node):
                     if bboxes is None or detection[bboxes_idx][4] > self.threshold:
                         d_msg = Detection()
                         d_msg.label_id = int(detection[0])
-                        d_msg.label = self.model.CLASSES[detection[0]]
+
+                        if detection[0] < len(self.model.CLASSES):
+                            d_msg.label = self.model.CLASSES[detection[0]]
 
                         if not bboxes is None:
                             d_msg.score = float(detection[bboxes_idx][4])
