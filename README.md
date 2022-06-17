@@ -2,10 +2,6 @@
 
 ROS 2 wrap for [MMDetection](https://github.com/open-mmlab/mmdetection). Object detection, instance segmentation and panoptic sementation are supported.
 
-![Object Detection](./docs/yolox.gif)
-![Instance Segmentation](./docs/yolact.gif)
-![Panoptic Segmentation](./docs/panoptic.gif)
-
 ## Table of Contents
 
 1. [Installation](#installation)
@@ -99,3 +95,14 @@ $ ros2 run usb_cam usb_cam_node_exe
 $ wget https://download.openmmlab.com/mmdetection/v2.0/yolox/yolox_tiny_8x8_300e_coco/yolox_tiny_8x8_300e_coco_20211124_171234-b4047906.pth
 $ ros2 launch mmdetection_bringup mmdetection.launch.py network_config:=~/ros2_ws/src/mmdetection_ros/mmdetection_bringup/config/yolox/yolox_tiny_8x8_300e_coco.py weights:=yolox_tiny_8x8_300e_coco_20211124_171234-b4047906.pth
 ```
+
+### Examples
+
+- yolox_tiny_8x8_300e_coco_20211124_171234-b4047906.pth
+  ![Object Detection](./docs/yolox.gif)
+
+- yolact_r50_1x8_coco_20200908-f38d58df.pth
+  ![Instance Segmentation](./docs/yolact.gif)
+
+- panoptic_fpn_r50_fpn_1x_coco_20210821_101153-9668fd13.pth
+  ![Panoptic Segmentation](./docs/panoptic.gif)
